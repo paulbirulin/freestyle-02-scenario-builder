@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Freestyle-02 Scenario Builder — AI-powered scenario creation for buyer-avatar sales training">
+    <title>Freestyle-02 Scenario Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css?v=14">
+</head>
+<body>
+    <div id="app">
+        <!-- Top Bar -->
+        <header id="top-bar">
+            <div class="top-bar__left">
+                <div class="logo">
+                    <span class="logo__icon">⚡</span>
+                    <span class="logo__text">Freestyle-02</span>
+                    <span class="logo__subtitle">Scenario Builder</span>
+                </div>
+            </div>
+            <div class="top-bar__center">
+                <div id="step-progress" class="step-progress">
+                    <div class="step-progress__bar">
+                        <div id="step-progress-fill" class="step-progress__fill" style="width: 0%"></div>
+                    </div>
+                    <span id="step-label" class="step-progress__label">Not started</span>
+                </div>
+            </div>
+            <div class="top-bar__right">
+                <div id="model-settings-bar" class="model-settings-bar hidden">
+                    <select id="model-select-bar" class="settings-select settings-select--sm" title="Model">
+                        <option value="">Auto</option>
+                        <option value="sonnet">Sonnet 4.5</option>
+                        <option value="haiku">Haiku 4.5</option>
+                    </select>
+                    <select id="effort-select-bar" class="settings-select settings-select--sm" title="Effort">
+                        <option value="low">Low</option>
+                        <option value="medium">Med</option>
+                        <option value="high" selected>High</option>
+                        <option value="xhigh">XHigh</option>
+                        <option value="max">Max</option>
+                    </select>
+                    <select id="ui-lang-bar" class="settings-select settings-select--sm" title="Communication language">
+                        <option value="ru">🇷🇺 RU</option>
+                        <option value="en">🇺🇸 EN</option>
+                        <option value="de">🇩🇪 DE</option>
+                        <option value="tr">🇹🇷 TR</option>
+                        <option value="he">🇮🇱 HE</option>
+                    </select>
+                    <select id="sc-lang-bar" class="settings-select settings-select--sm" title="Scenario language">
+                        <option value="ru">🇷🇺 RU</option>
+                        <option value="en">🇺🇸 EN</option>
+                        <option value="de">🇩🇪 DE</option>
+                        <option value="tr">🇹🇷 TR</option>
+                        <option value="he">🇮🇱 HE</option>
+                    </select>
+                </div>
+                <div id="agent-badge" class="agent-badge hidden">
+                    <span class="agent-badge__dot"></span>
+                    <span id="agent-name" class="agent-badge__name"></span>
+                </div>
+                <button id="btn-stop" class="btn-stop hidden" onclick="stopPipeline()" title="Stop pipeline">
+                    ■ Stop
+                </button>
+                <div id="status-badge" class="status-badge" data-status="idle">
+                    <span id="status-text">Idle</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="main-content">
+            <!-- Left Sidebar: Files -->
+            <aside id="sidebar-left" class="sidebar">
+                <div class="sidebar__header">
+                    <h3>📁 Files</h3>
+                    <button id="btn-upload" class="btn btn--sm btn--ghost" title="Upload source file">
+                        <span>+</span>
+                    </button>
+                </div>
+                <div class="sidebar__section">
+                    <h4 class="sidebar__section-title">Source Materials</h4>
+                    <div id="source-files-list" class="file-list">
+                        <div class="file-list__empty">No source files</div>
+                    </div>
+                </div>
+                <div class="sidebar__section">
+                    <h4 class="sidebar__section-title">Generated Artifacts</h4>
+                    <div id="generated-files-list" class="file-list">
+                        <div class="file-list__empty">No artifacts yet</div>
+                    </div>
+                </div>
+                <input type="file" id="file-input" multiple hidden>
+            </aside>
+
+            <!-- Center: Chat -->
+            <section id="chat-panel" class="chat-panel">
+                <!-- Welcome screen (shown when no session) -->
+                <div id="welcome-screen" class="welcome-screen">
+                    <div class="welcome-screen__content">
+                        <div class="welcome-screen__icon">🎭</div>
+                        <h1 class="welcome-screen__title">Freestyle-02 Scenario Builder</h1>
+                        <p class="welcome-screen__description">
+                            Build buyer-avatar scenarios with AI-powered assistance.
+                            Start fresh or open an existing scenario.
+                        </p>
+
+                        <!-- Scenario selector -->
+                        <div id="scenario-selector" class="scenario-selector">
+                            <label class="scenario-selector__label">Open existing scenario:</label>
+                            <select id="scenario-select" class="scenario-selector__select">
+                                <option value="">Loading scenarios...</option>
+                            </select>
+                        </div>
+
+                        <!-- Model & Effort Configuration -->
+                        <div class="model-config">
+                            <div class="model-config__group">
+                                <label class="model-config__label">Model</label>
+                                <div class="model-config__options" id="model-options">
+                                    <button class="model-btn model-btn--active" data-model="" title="SDK auto-selects best available">
+                                        <span class="model-btn__icon">🔄</span>
+                                        <span class="model-btn__name">Auto</span>
+                                    </button>
+                                    <button class="model-btn" data-model="sonnet" title="Claude Sonnet 4.5 — best quality">
+                                        <span class="model-btn__icon">🎯</span>
+                                        <span class="model-btn__name">Sonnet 4.5</span>
+                                    </button>
+                                    <button class="model-btn" data-model="haiku" title="Claude Haiku 4.5 — fast & cheap">
+                                        <span class="model-btn__icon">⚡</span>
+                                        <span class="model-btn__name">Haiku 4.5</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="model-config__group">
+                                <label class="model-config__label">Effort</label>
+                                <div class="model-config__slider-wrap">
+                                    <input type="range" id="effort-slider" class="effort-slider" min="0" max="4" value="2" step="1">
+                                    <div class="effort-labels">
+                                        <span>Low</span>
+                                        <span>Med</span>
+                                        <span>High</span>
+                                        <span>XHigh</span>
+                                        <span>Max</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="model-config__group">
+                                <label class="model-config__label">Languages</label>
+                                <div class="model-config__lang-row">
+                                    <div class="lang-select-wrap">
+                                        <span class="lang-select-label">💬 Chat</span>
+                                        <select id="ui-lang-select" class="settings-select">
+                                            <option value="ru">🇷🇺 Русский</option>
+                                            <option value="en">🇺🇸 English</option>
+                                            <option value="de">🇩🇪 Deutsch</option>
+                                            <option value="tr">🇹🇷 Türkçe</option>
+                                            <option value="he">🇮🇱 עברית</option>
+                                        </select>
+                                    </div>
+                                    <div class="lang-select-wrap">
+                                        <span class="lang-select-label">📄 Scenario</span>
+                                        <select id="sc-lang-select" class="settings-select">
+                                            <option value="ru">🇷🇺 Русский</option>
+                                            <option value="en">🇺🇸 English</option>
+                                            <option value="de">🇩🇪 Deutsch</option>
+                                            <option value="tr">🇹🇷 Türkçe</option>
+                                            <option value="he">🇮🇱 עברית</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="welcome-screen__actions">
+                            <button id="btn-open-scenario" class="btn btn--primary btn--lg" disabled>
+                                📂 Open Selected
+                            </button>
+                            <button id="btn-new-session" class="btn btn--ghost btn--lg">
+                                ✨ Start New
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat messages -->
+                <div id="chat-messages" class="chat-messages hidden">
+                    <!-- Messages will be appended here -->
+                </div>
+
+                <!-- Chat input -->
+                <div id="chat-input-area" class="chat-input-area hidden">
+                    <div class="chat-input-wrapper">
+                        <textarea
+                            id="chat-input"
+                            class="chat-input"
+                            placeholder="Describe your scenario or answer a question..."
+                            rows="1"
+                        ></textarea>
+                        <button id="btn-send" class="btn btn--primary btn--send" disabled>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Sidebar: Gates, Questions, Consistency -->
+            <aside id="sidebar-right" class="sidebar">
+                <div class="sidebar__header">
+                    <h3>🔒 Controls</h3>
+                </div>
+
+
+                <!-- Gates Section -->
+                <div class="sidebar__section">
+                    <h4 class="sidebar__section-title">Gates</h4>
+                    <div id="gates-list" class="gates-list">
+                        <div class="gates-list__empty">No gates yet</div>
+                    </div>
+                </div>
+
+                <!-- Consistency Reports -->
+                <div class="sidebar__section">
+                    <h4 class="sidebar__section-title">Consistency</h4>
+                    <div id="consistency-list" class="consistency-list">
+                        <div class="consistency-list__empty">No checks yet</div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- File preview modal -->
+    <div id="file-modal" class="modal hidden" data-log-file="">
+        <div class="modal__backdrop" onclick="closeFileModal()"></div>
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3 id="file-modal-title">File Preview</h3>
+                <div class="modal__actions">
+                    <button id="file-modal-save" class="btn btn--sm btn--primary modal__save hidden" onclick="saveLogFile()">💾 Save</button>
+                    <button class="modal__close" onclick="closeFileModal()">&times;</button>
+                </div>
+            </div>
+            <textarea id="file-modal-body" class="modal__body modal__editor" spellcheck="false"></textarea>
+        </div>
+    </div>
+
+    <script src="/static/app.js?v=14"></script>
+</body>
+</html>

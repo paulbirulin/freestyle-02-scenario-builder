@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario Builder — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2035;
+  --border:#2a3050;--text:#e2e8f0;--text2:#94a3b8;
+  --cyan:#22d3ee;--cyan-d:rgba(34,211,238,.12);
+  --amber:#f59e0b;--amber-d:rgba(245,158,11,.12);
+  --green:#34d399;--green-d:rgba(52,211,153,.12);
+  --red:#f87171;--red-d:rgba(248,113,113,.12);
+  --purple:#a78bfa;--purple-d:rgba(167,139,250,.12);
+  --blue:#60a5fa;--blue-d:rgba(96,165,250,.12);
+  --font:'Inter',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.6}
+
+/* HERO */
+.hero{text-align:center;padding:60px 20px 40px;position:relative}
+.hero h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.hero p{color:var(--text2);font-size:1rem;max-width:600px;margin:0 auto}
+
+/* NAV TABS */
+.tabs{display:flex;justify-content:center;gap:6px;padding:0 20px 30px;flex-wrap:wrap}
+.tab{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font:500 12px var(--font);transition:.2s;white-space:nowrap}
+.tab:hover,.tab.active{background:var(--cyan-d);border-color:var(--cyan);color:var(--cyan)}
+
+/* SECTIONS */
+.section{display:none;max-width:1100px;margin:0 auto;padding:0 20px 60px}
+.section.active{display:block}
+.section h2{font-size:1.4rem;font-weight:600;margin-bottom:20px;color:var(--cyan)}
+.section h3{font-size:1.05rem;font-weight:600;margin:24px 0 12px;color:var(--text)}
+.section>p,.section>.desc{color:var(--text2);font-size:13px;margin-bottom:16px;line-height:1.7}
+
+/* PIPELINE */
+.pipeline{display:flex;flex-direction:column;gap:0;align-items:center}
+.pipe-step{width:100%;max-width:700px;padding:18px 22px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);position:relative;transition:.3s}
+.pipe-step:hover{transform:translateX(4px);border-color:var(--cyan)}
+.pipe-step .badge{position:absolute;right:16px;top:16px;font-size:11px;padding:2px 10px;border-radius:10px;font-weight:600}
+.badge.ro{background:var(--green-d);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+.badge.rw{background:var(--amber-d);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.pipe-step h3{font-size:1rem;font-weight:600;margin:0 0 4px 0}
+.pipe-step p{font-size:13px;color:var(--text2)}
+.pipe-arrow{width:2px;height:24px;background:var(--border);position:relative}
+.gate{width:100%;max-width:400px;padding:10px 18px;border-radius:20px;text-align:center;font-size:13px;font-weight:600;border:1px dashed var(--amber);color:var(--amber);background:var(--amber-d)}
+
+/* CARDS GRID */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.cards-wide{grid-template-columns:repeat(auto-fill,minmax(460px,1fr))}
+.card{padding:18px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);transition:.3s}
+.card:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.card h3{font-size:.95rem;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card h4{font-size:.82rem;font-weight:600;color:var(--cyan);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.4px}
+.card p,.card li{font-size:13px;color:var(--text2)}
+.card ul{padding-left:18px;margin-top:6px}
+.card .icon{font-size:1.3rem}
+.card code{background:var(--bg);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--purple);font-family:var(--mono)}
+.card .tools-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.card .tool-chip{font-size:10px;padding:2px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text2);font-family:var(--mono)}
+.card .tool-chip.write{border-color:rgba(245,158,11,.4);color:var(--amber)}
+.card .tool-chip.read{border-color:rgba(52,211,153,.3);color:var(--green)}
+.card .ref-list{margin-top:4px;font-size:11px;color:var(--text2)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--cyan);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.tbl td{padding:10px 14px;border-bottom:1px solid rgba(42,48,80,.5)}
+.tbl tr:hover td{background:var(--cyan-d)}
+.tbl .yes{color:var(--green);font-weight:600}
+.tbl .no{color:var(--text2)}
+.tbl code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--purple);font-family:var(--mono)}
+.tbl .method{font-weight:600;font-family:var(--mono);font-size:11px}
+.tbl .method-get{color:var(--green)}
+.tbl .method-post{color:var(--amber)}
+.tbl .method-put{color:var(--blue)}
+.tbl .method-del{color:var(--red)}
+
+/* FLOW DIAGRAM */
+.flow-box{padding:24px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);font-size:13px;overflow-x:auto;margin-bottom:16px}
+.flow-box pre{color:var(--text2);line-height:1.7;font-family:var(--mono);font-size:12px}
+.flow-box .hl-cyan{color:var(--cyan)}
+.flow-box .hl-amber{color:var(--amber)}
+.flow-box .hl-green{color:var(--green)}
+.flow-box .hl-red{color:var(--red)}
+.flow-box .hl-purple{color:var(--purple)}
+.flow-box .hl-blue{color:var(--blue)}
+
+/* MINI LABEL */
+.label{display:inline-block;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;margin-right:4px}
+.label-green{background:var(--green-d);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+.label-amber{background:var(--amber-d);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.label-red{background:var(--red-d);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+.label-purple{background:var(--purple-d);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.label-blue{background:var(--blue-d);color:var(--blue);border:1px solid rgba(96,165,250,.3)}
+.label-cyan{background:var(--cyan-d);color:var(--cyan);border:1px solid rgba(34,211,238,.3)}
+
+/* SEPARATOR */
+.sep{border:none;border-top:1px solid var(--border);margin:28px 0}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .hero h1{font-size:1.6rem}
+  .cards{grid-template-columns:1fr}
+  .cards-wide{grid-template-columns:1fr}
+  .pipe-step{padding:14px 16px}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Freestyle-02 Scenario Builder</h1>
+  <p>AI-powered scenario generation with Claude Agent SDK — specialized subagents, gate-based human-in-the-loop approval, and MCP tool enforcement.</p>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-s="pipeline">Pipeline</div>
+  <div class="tab" data-s="agents">Agents</div>
+  <div class="tab" data-s="tools">Tools</div>
+  <div class="tab" data-s="hooks">Hooks</div>
+  <div class="tab" data-s="enforcement">Enforcement</div>
+  <div class="tab" data-s="sdk">SDK Execution</div>
+  <div class="tab" data-s="questions">Questions</div>
+  <div class="tab" data-s="state">State Model</div>
+  <div class="tab" data-s="prompts">Prompt Chain</div>
+  <div class="tab" data-s="api">API &amp; SSE</div>
+  <div class="tab" data-s="files">File Map</div>
+</div>
+
+<!-- ═══════════════ PIPELINE ═══════════════ -->
+<div class="section active" id="s-pipeline">
+  <h2>Pipeline Flow</h2>
+  <p class="desc">The orchestrator is a <strong>Python state machine</strong> (not an LLM). It launches scoped subagents sequentially, enforcing gates and collecting user input between steps. Each gate pauses the pipeline via async polling (0.5s interval, 30 min timeout).</p>
+  <div class="pipeline">
+    <div class="pipe-step"><span class="badge ro">READ-ONLY</span><h3>📖 Step 1-2 — SourceAnalyst</h3><p>Reads source files, inventories content, asks clarifying questions. Output → <code>state.source_register</code></p></div>
+    <div class="pipe-arrow"></div>
+    <div class="gate">🔒 Gate 1 — Review analysis</div>
+    <div class="pipe-arrow"></div>
+    <div class="pipe-step"><span class="badge ro">READ-ONLY</span><h3>📐 Step 3-4 — StructurePlanner</h3><p>Analyzes scenario, proposes improvements via <code>present_proposal</code>. Creates edit plan. Output → <code>state.layer_plan</code>. Has <strong>resume mode</strong> when SDK session is available.</p></div>
+    <div class="pipe-arrow"></div>
+    <div class="gate">🔒 Gate 2 — Approve edit plan</div>
+    <div class="pipe-arrow"></div>
+    <div class="pipe-step"><span class="badge rw">WRITE</span><h3>✍️ Step 5-7 — ContentWriter</h3><p>Executes edit plan: <code>find_replace_in_file</code>, <code>write_component</code>. Assembles <code>effective_prompt.md</code>, writes <code>welcome_message.txt</code>.</p></div>
+    <div class="pipe-arrow"></div>
+    <div class="gate">🔒 Gate 3 — Review file changes</div>
+    <div class="pipe-arrow"></div>
+    <div class="pipe-step"><span class="badge ro">READ-ONLY</span><h3>🔍 Step 8 — QAValidator (Discovery)</h3><p>Runs deterministic checks via <code>validate_scenario</code>, reads files, finds consistency issues. Reports via <code>present_proposal</code>. <strong>Cannot write files — enforced by allowed_tools.</strong></p></div>
+    <div class="pipe-arrow"></div>
+    <div class="gate">🔒 Gate 4 — Approve QA fixes</div>
+    <div class="pipe-arrow"></div>
+    <div class="pipe-step"><span class="badge rw">WRITE</span><h3>🔧 Step 8b — QAValidatorFix</h3><p>Same QA agent, now with write tools via <code>override_tools="QAValidatorFix"</code>. Applies approved fixes, reassembles prompt, re-validates.</p></div>
+    <div class="pipe-arrow"></div>
+    <div class="gate">🔒 Gate 5 — Run tests?</div>
+    <div class="pipe-arrow"></div>
+    <div class="pipe-step"><span class="badge ro">READ-ONLY</span><h3>🧪 Step 9-10 — TestRunner</h3><p>Approve gate = run batch tests. Reject gate = skip to retrospective (mini post-mortem). Final summary.</p></div>
+  </div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Data Flow Between Steps</h3>
+  <div class="flow-box"><pre>
+<span class="hl-cyan">user_message</span>
+    ↓  <span class="hl-purple">_build_source_prompt()</span>
+<span class="hl-cyan">state.source_register</span>  ←  SourceAnalyst output
+    ↓  <span class="hl-purple">_build_structure_prompt()</span>
+<span class="hl-cyan">state.layer_plan</span>  ←  StructurePlanner output (edit plan)
+    ↓  <span class="hl-purple">_build_content_prompt()</span>
+<span class="hl-amber">(file edits executed)</span>  ←  ContentWriter
+    ↓  <span class="hl-purple">_build_qa_prompt()</span>
+<span class="hl-cyan">state.qa_result</span>  ←  QAValidator findings
+    ↓  <span class="hl-purple">_build_qa_fix_prompt()</span>
+<span class="hl-amber">(fixes applied)</span>  ←  QAValidatorFix
+    ↓  <span class="hl-purple">_build_test_prompt()</span> / <span class="hl-purple">_build_retrospective_prompt()</span>
+<span class="hl-cyan">state.test_result</span>  ←  TestRunner
+    ↓
+<span class="hl-green">🎉 COMPLETED</span>
+  </pre></div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Between Each Step</h3>
+  <div class="cards">
+    <div class="card"><h3>🔄 _rescue_text_questions()</h3><p>Detects if agent wrote questions as text (not via tool). Scans last 800 chars for '?'. Skipped if agent already used ask_user_question. Filters rhetorical questions ("готов", "следующ", etc.).</p></div>
+    <div class="card"><h3>⏳ _wait_pending_questions()</h3><p>Blocks pipeline until ALL questions from this agent are answered. Polls every 0.5s, timeout 30 min. Ensures user answers before gate appears.</p></div>
+    <div class="card"><h3>🔍 _maybe_consistency_check()</h3><p>Optional (user-controlled via gate with negative ID). Runs ConsistencyChecker subagent with workspace context. Parses severity from structured markers.</p></div>
+  </div>
+</div>
+
+<!-- ═══════════════ AGENTS ═══════════════ -->
+<div class="section" id="s-agents">
+  <h2>Subagents — Full Configuration</h2>
+  <p class="desc">Each agent is defined in <code>src/subagents/__init__.py</code> as a dict with: skill file (loaded at import), reference docs (injected into system prompt), and an explicit <code>allowed_tools</code> list that the SDK enforces physically.</p>
+  <div class="cards cards-wide">
+
+    <div class="card">
+      <h3><span class="icon">📖</span> SourceAnalyst <span class="label label-green">READ-ONLY</span></h3>
+      <p>Steps 1-2. Reads source files, clarifies missing data with user. Does NOT propose improvements.</p>
+      <h4>Skill File</h4><p><code>source-analyst.md</code></p>
+      <h4>References</h4><p class="ref-list">— none —</p>
+      <h4>Allowed Tools</h4>
+      <div class="tools-list">
+        <span class="tool-chip read">read_source_files</span>
+        <span class="tool-chip read">list_workspace</span>
+        <span class="tool-chip read">ask_user_question</span>
+        <span class="tool-chip read">present_proposal</span>
+        <span class="tool-chip">Read</span>
+        <span class="tool-chip">WebSearch</span>
+        <span class="tool-chip">WebFetch</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">📐</span> StructurePlanner <span class="label label-green">READ-ONLY</span></h3>
+      <p>Steps 3-4. Plans changes — analyzes, proposes, creates edit plan. Does NOT write files.</p>
+      <h4>Skill File</h4><p><code>structure-planner.md</code></p>
+      <h4>References</h4>
+      <p class="ref-list">📎 freestyle-02-file-responsibilities.md<br>📎 communication-gates.md</p>
+      <h4>Allowed Tools</h4>
+      <div class="tools-list">
+        <span class="tool-chip read">read_source_files</span>
+        <span class="tool-chip read">list_workspace</span>
+        <span class="tool-chip read">read_reference</span>
+        <span class="tool-chip read">ask_user_question</span>
+        <span class="tool-chip read">present_proposal</span>
+        <span class="tool-chip">Read</span>
+        <span class="tool-chip">WebSearch</span>
+        <span class="tool-chip">WebFetch</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">✍️</span> ContentWriter <span class="label label-amber">WRITE</span></h3>
+      <p>Steps 5-7. Executes the edit plan. Writes files, assembles prompt.</p>
+      <h4>Skill File</h4><p><code>content-writer.md</code></p>
+      <h4>References</h4>
+      <p class="ref-list">📎 immersive-prompt-writing.md<br>📎 welcome-message.md</p>
+      <h4>Allowed Tools</h4>
+      <div class="tools-list">
+        <span class="tool-chip read">read_source_files</span>
+        <span class="tool-chip write">write_component</span>
+        <span class="tool-chip write">find_replace_in_file</span>
+        <span class="tool-chip read">read_reference</span>
+        <span class="tool-chip read">assemble_prompt</span>
+        <span class="tool-chip read">list_workspace</span>
+        <span class="tool-chip read">ask_user_question</span>
+        <span class="tool-chip">Read</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">🔍</span> QAValidator (Discovery) <span class="label label-green">READ-ONLY</span></h3>
+      <p>Step 8. Finds issues and proposes fixes but CANNOT write files. Same pattern as StructurePlanner.</p>
+      <h4>Skill File</h4><p><code>qa-validator.md</code></p>
+      <h4>References</h4>
+      <p class="ref-list">📎 final-qa-checklist.md<br>📎 known-issues.md</p>
+      <h4>Allowed Tools</h4>
+      <div class="tools-list">
+        <span class="tool-chip read">read_source_files</span>
+        <span class="tool-chip read">validate_scenario</span>
+        <span class="tool-chip read">assemble_prompt</span>
+        <span class="tool-chip read">list_workspace</span>
+        <span class="tool-chip read">read_reference</span>
+        <span class="tool-chip read">ask_user_question</span>
+        <span class="tool-chip read">present_proposal</span>
+        <span class="tool-chip">Read</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">🔧</span> QAValidatorFix <span class="label label-amber">WRITE</span></h3>
+      <p>Step 8b. Same agent/skill, different <code>allowed_tools</code>. Applies approved fixes.</p>
+      <h4>Skill File</h4><p><code>qa-validator.md</code> (same)</p>
+      <h4>References</h4>
+      <p class="ref-list">📎 final-qa-checklist.md<br>📎 known-issues.md</p>
+      <h4>Allowed Tools</h4>
+      <div class="tools-list">
+        <span class="tool-chip read">read_source_files</span>
+        <span class="tool-chip read">validate_scenario</span>
+        <span class="tool-chip write">find_replace_in_file</span>
+        <span class="tool-chip write">write_component</span>
+        <span class="tool-chip read">assemble_prompt</span>
+        <span class="tool-chip read">list_workspace</span>
+        <span class="tool-chip read">read_reference</span>
+        <span class="tool-chip read">ask_user_question</span>
+        <span class="tool-chip">Read</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">🧪</span> TestRunner <span class="label label-green">READ-ONLY</span></h3>
+      <p>Steps 9-10. Runs batch tests or does a retrospective analysis.</p>
+      <h4>Skill File</h4><p><code>test-runner.md</code></p>
+      <h4>References</h4>
+      <p class="ref-list">📎 testing-and-iteration.md</p>
+      <h4>Allowed Tools</h4>
+      <div class="tools-list">
+        <span class="tool-chip read">read_source_files</span>
+        <span class="tool-chip read">list_workspace</span>
+        <span class="tool-chip read">read_reference</span>
+        <span class="tool-chip read">ask_user_question</span>
+        <span class="tool-chip">Read</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon">🔎</span> ConsistencyChecker <span class="label label-purple">OPTIONAL</span></h3>
+      <p>Runs after any step (user-triggered via negative gate ID). Verifies cross-file consistency.</p>
+      <h4>Skill File</h4><p><code>consistency-checker.md</code></p>
+      <h4>References</h4>
+      <p class="ref-list">📎 final-qa-checklist.md<br>📎 freestyle-02-file-responsibilities.md<br>📎 known-issues.md</p>
+      <h4>Allowed Tools</h4>
+      <div class="tools-list">
+        <span class="tool-chip read">read_source_files</span>
+        <span class="tool-chip read">list_workspace</span>
+        <span class="tool-chip read">read_reference</span>
+        <span class="tool-chip read">ask_user_question</span>
+        <span class="tool-chip">Read</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ TOOLS ═══════════════ -->
+<div class="section" id="s-tools">
+  <h2>MCP Tools — 9 Custom Tools</h2>
+  <p class="desc">All tools are registered as <strong>in-process SDK MCP servers</strong> via <code>create_sdk_mcp_server()</code> — no subprocess overhead. The MCP server name is <code>scenario-builder-tools</code>, so SDK tool names are prefixed: <code>mcp__scenario-builder-tools__&lt;name&gt;</code>.</p>
+  <table class="tbl">
+    <thead><tr><th>Tool</th><th>File</th><th>Description</th><th>Write?</th></tr></thead>
+    <tbody>
+      <tr><td><code>read_source_files</code></td><td>file_tools.py</td><td>Read workspace files by path. Truncates at <strong>50,000 chars</strong>. Accepts absolute or relative paths.</td><td class="no">❌</td></tr>
+      <tr><td><code>write_component</code></td><td>file_tools.py</td><td>Create or update scenario files. <strong>overwrite=True</strong> by default (prevents agent asking "are you sure?"). Auto <code>mkdir -p</code>. Path sandboxed to workspace.</td><td class="yes">✅</td></tr>
+      <tr><td><code>find_replace_in_file</code></td><td>file_tools.py</td><td>Find &amp; replace text. Counts occurrences, errors on 0 matches. Relative paths resolved to workspace root.</td><td class="yes">✅</td></tr>
+      <tr><td><code>list_workspace</code></td><td>file_tools.py</td><td>List directory contents. Shows 📁 dirs (recursive file count) and 📄 files (bytes).</td><td class="no">❌</td></tr>
+      <tr><td><code>read_reference</code></td><td>file_tools.py</td><td>Read from <code>references/</code> dir. Auto-appends <code>.md</code> suffix. Lists available refs on not-found error.</td><td class="no">❌</td></tr>
+      <tr><td><code>assemble_prompt</code></td><td>assembly_tools.py</td><td>Wraps <code>scripts/assemble_effective_prompt.py</code> in-process. Supports <code>dry_run</code> mode.</td><td class="no">❌</td></tr>
+      <tr><td><code>validate_scenario</code></td><td>validation_tools.py</td><td>Wraps <code>scripts/validate_freestyle02_scenario.py</code>. Uses <code>DEFAULT_MARKERS + extra_forbidden</code>.</td><td class="no">❌</td></tr>
+      <tr><td><code>ask_user_question</code></td><td>question_tool.py</td><td>Ask user a question, block until answer. Callback injected at runtime. Fallback text if no callback. Options list (max 10).</td><td class="no">❌</td></tr>
+      <tr><td><code>present_proposal</code></td><td>proposal_tool.py</td><td>Show proposal with title + full content, wait for approve/modify/reject. Min 20 chars content required. Default 3 options.</td><td class="no">❌</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Path Sandboxing</h3>
+  <div class="flow-box"><pre>
+<span class="hl-cyan">Tool called</span> with path argument
+  │
+  ├─ <span class="hl-purple">is_absolute?</span>  → validate directly
+  ├─ <span class="hl-purple">is_relative?</span>  → prepend <span class="hl-amber">_workspace_root</span>
+  │
+  └─ <span class="hl-purple">resolved.startswith(_workspace_root)?</span>
+       ├─ No  → <span class="hl-red">ERROR "Path outside workspace"</span>
+       └─ Yes → <span class="hl-green">Execute tool</span>
+
+<span class="hl-amber">_workspace_root</span> is set by orchestrator via <span class="hl-cyan">set_workspace()</span>
+before each subagent run. Points to the scenario directory.
+  </pre></div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Callback Injection</h3>
+  <div class="flow-box"><pre>
+<span class="hl-cyan">create_scenario_tools_server</span>(question_callback=orch._question_callback)
+  │
+  ├─ ask_user_question.<span class="hl-purple">_question_callback</span> = callback
+  └─ present_proposal.<span class="hl-purple">_question_callback</span> = callback
+
+When tool runs → calls <span class="hl-amber">callback(question_data)</span> → <span class="hl-green">returns user answer</span>
+  </pre></div>
+</div>
+
+<!-- ═══════════════ HOOKS ═══════════════ -->
+<div class="section" id="s-hooks">
+  <h2>SDK Hooks — 3 Types</h2>
+  <div class="cards">
+    <div class="card" style="border-color:var(--amber)"><h3><span class="icon">🔒</span> enforce_gates</h3><p><strong>Event:</strong> PreToolUse<br><strong>File:</strong> <code>gate_enforcement.py</code></p><p style="margin-top:8px">Checks <code>session_state["gates_passed"]</code> before allowing write tools. If the required gate hasn't been passed, the tool call is <strong>denied</strong>.</p><h4>Gate Requirements</h4><ul><li><code>write_component</code> → Gate 2</li><li><code>find_replace_in_file</code> → Gate 2</li><li><code>assemble_prompt</code> → Gate 2</li><li><code>run_batch_test</code> → Gate 4</li></ul><h4>QA Write Lock</h4><p>When <code>qa_writes_locked=True</code>: denies <code>write_component</code> and <code>find_replace_in_file</code> until agent calls <code>present_proposal</code> or <code>ask_user_question</code>. Set by orchestrator before QAValidator.</p></div>
+    <div class="card" style="border-color:var(--red)"><h3><span class="icon">🛡️</span> enforce_safety</h3><p><strong>Event:</strong> PreToolUse<br><strong>File:</strong> <code>safety_hooks.py</code></p><p style="margin-top:8px">Blocks built-in Claude tools: <code>Write</code>, <code>Edit</code>, <code>Bash</code>, <code>MultiEdit</code>. Forces agents to use custom MCP tools for sandboxed file operations.</p><h4>Progress Tracking</h4><p>Also tracks <code>WebSearch</code>, <code>WebFetch</code>, <code>Read</code> usage — prints progress to stdout with emoji indicators.</p></div>
+    <div class="card" style="border-color:var(--purple)"><h3><span class="icon">🛑</span> stop_guard</h3><p><strong>Event:</strong> Stop<br><strong>File:</strong> <code>stop_guard.py</code></p><p style="margin-top:8px">Fires when agent tries to finish. Checks last 500 chars for lines with '?' (min 15 chars). If found and agent never called <code>ask_user_question</code> → <strong>blocks the stop</strong> and forces tool usage.</p><h4>State</h4><p>Uses module-level <code>_stop_guard_state</code> dict. Reset via <code>reset_stop_guard(agent_name)</code> before each subagent run.</p></div>
+  </div>
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Hook Registration in SDK</h3>
+  <div class="flow-box"><pre>
+options = ClaudeAgentOptions(
+    hooks={
+        <span class="hl-amber">"PreToolUse"</span>: [
+            HookMatcher(matcher=<span class="hl-purple">"*"</span>, hooks=[<span class="hl-cyan">enforce_gates</span>, <span class="hl-cyan">enforce_safety</span>]),
+        ],
+        <span class="hl-amber">"Stop"</span>: [
+            HookMatcher(matcher=<span class="hl-purple">"*"</span>, hooks=[<span class="hl-cyan">stop_guard</span>]),
+        ],
+    },
+)
+  </pre></div>
+</div>
+
+<!-- ═══════════════ ENFORCEMENT ═══════════════ -->
+<div class="section" id="s-enforcement">
+  <h2>Enforcement Architecture</h2>
+  <h3 style="color:var(--amber);margin-bottom:12px">Principle: Behavior via Tools &amp; Permissions, NOT Prompts</h3>
+
+  <div class="cards" style="margin-bottom:24px">
+    <div class="card"><h3>Layer 1: allowed_tools</h3><p>SDK physically prevents tool calls not in agent's <code>allowed_tools</code> list. QAValidator discovery has NO write tools — the SDK won't even send the call.</p></div>
+    <div class="card"><h3>Layer 2: Gate hooks</h3><p><code>enforce_gates</code> PreToolUse hook checks <code>gates_passed</code>. Even if write tools are in allowed_tools, they're blocked until the user approves the gate.</p></div>
+    <div class="card"><h3>Layer 3: Safety hooks</h3><p><code>enforce_safety</code> blocks built-in Write/Edit/Bash. Agents must use sandboxed MCP tools that validate paths and enforce workspace boundaries.</p></div>
+    <div class="card"><h3>Layer 4: Stop guard</h3><p><code>stop_guard</code> prevents agents from finishing prematurely. If questions were written as text, the agent is forced to use the <code>ask_user_question</code> tool.</p></div>
+  </div>
+
+  <div class="flow-box"><pre>
+<span class="hl-cyan">Agent</span> calls tool
+  │
+  ├─ Is it in <span class="hl-purple">allowed_tools</span>?  ── No ──→  <span class="hl-red">SDK BLOCKS (tool invisible)</span>
+  │                               Yes
+  ├─ <span class="hl-amber">enforce_safety</span>: Built-in Write/Edit/Bash?  ── Yes ──→  <span class="hl-red">DENIED</span>
+  │                                                  No
+  ├─ <span class="hl-amber">enforce_gates</span>: Required gate passed?  ── No ──→  <span class="hl-red">DENIED</span>
+  │                                           Yes
+  ├─ <span class="hl-amber">enforce_gates</span>: QA write lock active?  ── Yes + write tool ──→  <span class="hl-red">DENIED</span>
+  │                                           No
+  └─ <span class="hl-green">Tool executes normally</span>
+
+<span class="hl-cyan">Agent</span> tries to stop
+  │
+  └─ <span class="hl-purple">stop_guard</span>: Questions as text?  ── Yes ──→  <span class="hl-red">BLOCKED (must use tool)</span>
+                                       No
+                                       └─ <span class="hl-green">Agent stops</span>
+  </pre></div>
+</div>
+
+<!-- ═══════════════ SDK EXECUTION ═══════════════ -->
+<div class="section" id="s-sdk">
+  <h2>SDK Execution Model</h2>
+  <p class="desc">Subagents run via <code>claude-agent-sdk</code> which spawns <code>claude.exe</code> as a subprocess. On Windows, asyncio subprocess support requires a <code>ProactorEventLoop</code>, but uvicorn uses a different loop. The workaround: each subagent runs in a <strong>dedicated thread</strong> with its own event loop.</p>
+
+  <div class="cards" style="margin-bottom:24px">
+    <div class="card" style="border-color:var(--amber)">
+      <h3>🔐 Dual Lock System</h3>
+      <h4>_cli_lock (module-level)</h4>
+      <p>Only <strong>one</strong> <code>claude.exe</code> process at a time across ALL sessions and orchestrators. Prevents resource contention.</p>
+      <h4>_subagent_lock (per-instance)</h4>
+      <p>Serializes subagent calls within a single orchestrator. Ensures SourceAnalyst finishes before ConsistencyChecker starts.</p>
+    </div>
+    <div class="card" style="border-color:var(--purple)">
+      <h3>🧵 Thread Isolation</h3>
+      <p>Each subagent runs in <code>loop.run_in_executor(None, _run_in_thread)</code></p>
+      <ul>
+        <li>New thread creates its own <code>asyncio.ProactorEventLoop</code> (Windows)</li>
+        <li>Calls <code>loop.run_until_complete(_collect_messages())</code></li>
+        <li>Collects all SDK messages, returns them to main thread</li>
+        <li>Thread's event loop is properly closed in <code>finally</code></li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:var(--cyan)">
+      <h3>🔄 Session Resume</h3>
+      <p>SDK supports session sharing between agents:</p>
+      <ul>
+        <li><code>ResultMessage.session_id</code> captured after each agent</li>
+        <li>Stored in <code>state.sdk_session_id</code></li>
+        <li>Passed to next agent via <code>resume=session_id</code></li>
+        <li>StructurePlanner can see SourceAnalyst's full context</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:var(--green)">
+      <h3>🌐 Language Injection</h3>
+      <p>System prompt enriched with ~30 lines of mandatory protocol:</p>
+      <ul>
+        <li><strong>LANGUAGE</strong>: UI language + scenario content language</li>
+        <li><strong>QUESTION PROTOCOL</strong>: Must use tool, one at a time, closing question</li>
+        <li><strong>EDIT PROTOCOL</strong>: find_replace preferred, write_component for new files</li>
+      </ul>
+      <p style="margin-top:6px">Supported: 🇷🇺 ru, 🇺🇸 en, 🇩🇪 de, 🇹🇷 tr, 🇮🇱 he</p>
+    </div>
+  </div>
+
+  <h3 style="color:var(--cyan)">Execution Flow</h3>
+  <div class="flow-box"><pre>
+<span class="hl-cyan">orchestrator.run()</span>
+  │
+  └─ <span class="hl-purple">_run_subagent</span>(name, prompt, override_tools?)
+       │
+       ├─ Load system prompt from <span class="hl-amber">skills/*.md</span>
+       ├─ Inject reference docs from <span class="hl-amber">references/</span>
+       ├─ Append <span class="hl-amber">LANGUAGE + QUESTION + EDIT</span> protocol blocks
+       ├─ Create in-process MCP server with question callback
+       ├─ Build <span class="hl-cyan">ClaudeAgentOptions</span>:
+       │    model, effort, allowed_tools, disallowed_tools,
+       │    mcp_servers, hooks, permission_mode, resume, max_turns=50
+       ├─ <span class="hl-purple">reset_stop_guard</span>(name)
+       │
+       ├─ Acquire <span class="hl-amber">_subagent_lock</span> (per-instance)
+       │  └─ Acquire <span class="hl-amber">_cli_lock</span> (module-level)
+       │     └─ <span class="hl-green">Thread</span>: new ProactorEventLoop
+       │        └─ async for msg in <span class="hl-cyan">query(prompt, options)</span>:
+       │             collect messages
+       │        └─ loop.close()
+       │     ← <span class="hl-amber">_cli_lock</span> released
+       │  ← <span class="hl-amber">_subagent_lock</span> released
+       │
+       ├─ Process messages:
+       │    <span class="hl-cyan">AssistantMessage</span> → extract TextBlock → emit to SSE
+       │    <span class="hl-purple">ResultMessage</span>    → capture session_id for resume
+       │    <span class="hl-green">SystemMessage</span>    → skip
+       │
+       ├─ Long messages (>2000 chars):
+       │    Save to <span class="hl-amber">sessions/{id}/step{N}_{Agent}.md</span>
+       │    Emit truncated (300 chars) + log_file + full_length
+       │
+       └─ Return joined text
+  </pre></div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">ClaudeAgentOptions</h3>
+  <table class="tbl">
+    <thead><tr><th>Parameter</th><th>Value</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>system_prompt</code></td><td>skill .md + refs + lang block</td><td>Agent instructions</td></tr>
+      <tr><td><code>cwd</code></td><td>workspace directory</td><td>Working dir for claude.exe</td></tr>
+      <tr><td><code>allowed_tools</code></td><td>per-agent list</td><td>Physical tool access control</td></tr>
+      <tr><td><code>disallowed_tools</code></td><td>["Write","Edit","Bash","MultiEdit"]</td><td>Block built-in write tools</td></tr>
+      <tr><td><code>mcp_servers</code></td><td>{"scenario-builder-tools": server}</td><td>Custom tool server</td></tr>
+      <tr><td><code>permission_mode</code></td><td>"acceptEdits"</td><td>Auto-accept tool calls</td></tr>
+      <tr><td><code>model</code></td><td>from session state (or None)</td><td>sonnet / haiku / auto</td></tr>
+      <tr><td><code>effort</code></td><td>low / medium / high / xhigh / max</td><td>Thinking budget</td></tr>
+      <tr><td><code>resume</code></td><td>previous session_id</td><td>Context sharing</td></tr>
+      <tr><td><code>max_turns</code></td><td>50</td><td>Prevent infinite loops</td></tr>
+      <tr><td><code>hooks</code></td><td>PreToolUse + Stop matchers</td><td>Enforcement hooks</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ QUESTIONS ═══════════════ -->
+<div class="section" id="s-questions">
+  <h2>Question &amp; Proposal Lifecycle</h2>
+  <p class="desc">Questions are the primary way agents interact with the user. The system has three mechanisms: the <code>ask_user_question</code> tool (primary), the <code>present_proposal</code> tool (for structured proposals), and the <code>_rescue_text_questions</code> fallback for agents that write questions as text.</p>
+
+  <h3 style="color:var(--cyan)">ask_user_question — Full Flow</h3>
+  <div class="flow-box"><pre>
+<span class="hl-cyan">Agent</span> calls ask_user_question(question="...", options=[...], blocking=True)
+  │
+  ├─ <span class="hl-purple">question_tool.py</span> → callback = injected <span class="hl-amber">_question_callback</span>
+  │
+  └─ <span class="hl-purple">orchestrator._question_callback()</span>
+       │
+       ├─ Create <span class="hl-cyan">UserQuestion</span> object (uuid[:8], agent, step, question, options)
+       ├─ Append to <span class="hl-amber">state.questions[]</span>
+       ├─ Set status → <span class="hl-amber">WAITING_FOR_USER</span>
+       ├─ Save state to JSON
+       ├─ Emit SSE <span class="hl-green">"question"</span> event to frontend
+       │
+       ├─ if not blocking → return "(non-blocking)" immediately
+       │
+       ├─ Create <span class="hl-purple">threading.Event()</span>
+       ├─ Register in <span class="hl-amber">_question_events[qid]</span>
+       └─ <span class="hl-red">POLL</span>: while not event.is_set():
+            await asyncio.sleep(0.5)   ← keeps event loop alive!
+            timeout: 30 minutes
+                 │
+                 │  ← <span class="hl-green">User answers in browser</span>
+                 │     POST /api/questions/{sid}/{qid} {answer}
+                 │     → orchestrator.answer_question(qid, answer)
+                 │       → _question_answers[qid] = answer
+                 │       → _question_events[qid].set()  ← unblocks poll
+                 │
+                 └─ Return answer to tool → tool returns to agent
+                    → <span class="hl-green">Agent continues</span>
+  </pre></div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">present_proposal — Structured Proposals</h3>
+  <div class="cards">
+    <div class="card">
+      <h3>📋 How it works</h3>
+      <p>Agent provides <code>title</code> + <code>content</code> (min 20 chars). Content is formatted as <code>📋 **{title}**\n\n{content}</code> and sent through the same <code>_question_callback</code> pipeline.</p>
+      <h4>Default Options</h4>
+      <ul>
+        <li>Approve — proceed</li>
+        <li>Modify — I want to change something</li>
+        <li>Reject — start over</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>vs. ask_user_question</h3>
+      <ul>
+        <li><strong>ask_user_question</strong>: asks for input (free text or options)</li>
+        <li><strong>present_proposal</strong>: shows agent's work, asks for approval</li>
+        <li>Both use the same callback and SSE pipeline</li>
+        <li>Both block the agent until user responds</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Rescue Mechanism — Text Question Detection</h3>
+  <div class="flow-box"><pre>
+After each subagent finishes → <span class="hl-purple">_rescue_text_questions(result, agent, step)</span>
+  │
+  ├─ Agent already has tool questions?  ── Yes ──→  <span class="hl-green">SKIP</span> (agent knows the tool)
+  │                                      No
+  ├─ Scan last 800 chars for lines with '?'
+  ├─ Filter: min 10 chars, strip markdown prefixes
+  ├─ Filter: skip rhetorical patterns:
+  │    "готов", "передать", "следующ", "продолж", "ещё", "okay"
+  │
+  ├─ No real questions?  ──→  <span class="hl-green">RETURN</span> original result
+  │
+  └─ For each real question:
+       ├─ Emit "⚠️ agent wrote questions as text" system message
+       ├─ Call <span class="hl-amber">_question_callback()</span> directly
+       ├─ Wait for user answer
+       └─ Append Q&amp;A to result: <span class="hl-cyan">"**User answered:** {q}\n→ {a}"</span>
+  </pre></div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Stop Guard — Forced Tool Usage</h3>
+  <div class="flow-box"><pre>
+Agent finishes (Stop event) → <span class="hl-purple">stop_guard()</span>
+  │
+  ├─ Extract last assistant message text
+  ├─ Scan last 500 chars for lines with '?' (min 15 chars)
+  │
+  ├─ No question lines?  ──→  <span class="hl-green">Allow stop</span>
+  │
+  └─ Question lines found:
+       └─ Return <span class="hl-red">BLOCK</span> decision:
+          "You wrote N question(s) as text but did NOT use
+           the ask_user_question tool."
+          → Agent forced to call the tool → retry stop
+  </pre></div>
+</div>
+
+<!-- ═══════════════ STATE MODEL ═══════════════ -->
+<div class="section" id="s-state">
+  <h2>State Model — Pydantic</h2>
+  <p class="desc">All state is modeled with Pydantic v2 and persisted as JSON in <code>sessions/{id}/state.json</code>. The <code>SessionManager</code> provides CRUD with an in-memory cache for active sessions.</p>
+
+  <h3 style="color:var(--cyan)">SessionState — 18 Fields</h3>
+  <table class="tbl">
+    <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>session_id</code></td><td>str</td><td>uuid[:12]</td><td>Unique session identifier</td></tr>
+      <tr><td><code>status</code></td><td>SessionStatus</td><td>IDLE</td><td>Current pipeline state</td></tr>
+      <tr><td><code>current_step</code></td><td>int</td><td>0</td><td>Active step number</td></tr>
+      <tr><td><code>current_agent</code></td><td>str</td><td>""</td><td>Active agent name</td></tr>
+      <tr><td><code>model_id</code></td><td>str</td><td>"" (auto)</td><td>sonnet / haiku / ""</td></tr>
+      <tr><td><code>effort</code></td><td>str</td><td>"high"</td><td>low / medium / high / xhigh / max</td></tr>
+      <tr><td><code>ui_language</code></td><td>str</td><td>"ru"</td><td>AI ↔ user communication</td></tr>
+      <tr><td><code>scenario_language</code></td><td>str</td><td>"ru"</td><td>Generated content language</td></tr>
+      <tr><td><code>consistency_enabled</code></td><td>bool</td><td>False</td><td>Run checks after steps</td></tr>
+      <tr><td><code>gates</code></td><td>dict[int, GateStatus]</td><td>{}</td><td>Gate decisions</td></tr>
+      <tr><td><code>source_register</code></td><td>str</td><td>""</td><td>SourceAnalyst output</td></tr>
+      <tr><td><code>layer_plan</code></td><td>str</td><td>""</td><td>StructurePlanner edit plan</td></tr>
+      <tr><td><code>qa_result</code></td><td>str</td><td>""</td><td>QAValidator findings</td></tr>
+      <tr><td><code>test_result</code></td><td>str</td><td>""</td><td>TestRunner summary</td></tr>
+      <tr><td><code>consistency_reports</code></td><td>dict[int, Report]</td><td>{}</td><td>Per-step reports</td></tr>
+      <tr><td><code>questions</code></td><td>list[UserQuestion]</td><td>[]</td><td>All Q&amp;A history</td></tr>
+      <tr><td><code>source_files</code></td><td>list[str]</td><td>[]</td><td>Input file paths</td></tr>
+      <tr><td><code>workspace_dir</code></td><td>str</td><td>""</td><td>Scenario directory</td></tr>
+      <tr><td><code>sdk_session_id</code></td><td>str</td><td>""</td><td>Resume between agents</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Status Transitions</h3>
+  <div class="flow-box"><pre>
+<span class="hl-cyan">IDLE</span> ──→ <span class="hl-green">RUNNING</span> ──→ <span class="hl-amber">WAITING_FOR_USER</span> (question asked)
+               │         ↓ (answer received)
+               │    <span class="hl-green">RUNNING</span>
+               │
+               ├──→ <span class="hl-amber">WAITING_FOR_APPROVAL</span> (gate pending)
+               │         ↓ (gate approved)
+               │    <span class="hl-green">RUNNING</span>
+               │         ↓ (gate rejected)
+               │    <span class="hl-purple">PAUSED</span>
+               │
+               ├──→ <span class="hl-green">COMPLETED</span> (all steps done, 🎉)
+               │
+               └──→ <span class="hl-red">FAILED</span> (exception in pipeline)
+  </pre></div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Enums &amp; Models</h3>
+  <div class="cards">
+    <div class="card">
+      <h3>SessionStatus</h3>
+      <p><code>idle</code> · <code>running</code> · <code>waiting_for_user</code> · <code>waiting_for_approval</code> · <code>paused</code> · <code>completed</code> · <code>failed</code></p>
+    </div>
+    <div class="card">
+      <h3>GateDecision</h3>
+      <p><code>pending</code> · <code>approved</code> · <code>rejected</code></p>
+    </div>
+    <div class="card">
+      <h3>ConsistencySeverity</h3>
+      <p><code>ok</code> · <code>warning</code> · <code>error</code></p>
+      <p style="margin-top:4px;font-size:12px">Parsed from agent output via regex: <code>^SEVERITY|STATUS|VERDICT: ERROR|WARNING|OK</code></p>
+    </div>
+    <div class="card">
+      <h3>UserQuestion</h3>
+      <p>question_id (uuid[:8]) · agent · step · question · context · options[] · blocking · answer · answered_at</p>
+    </div>
+    <div class="card">
+      <h3>GateStatus</h3>
+      <p>gate_id (int) · description · decision · decided_at · comment</p>
+      <p style="margin-top:4px;font-size:12px">Negative gate_id = consistency check gate</p>
+    </div>
+    <div class="card">
+      <h3>SessionManager</h3>
+      <p>JSON persistence in <code>sessions/{id}/state.json</code>. In-memory cache via <code>_active</code> dict. CRUD: create / load / save / delete / list.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PROMPT CHAIN ═══════════════ -->
+<div class="section" id="s-prompts">
+  <h2>Prompt Chain — 7 Builders</h2>
+  <p class="desc">Each subagent receives a dynamically generated prompt from the orchestrator. The prompt includes context from previous steps (passed via <code>state.*</code> fields) and specific instructions. All builders are methods of <code>ScenarioOrchestrator</code>.</p>
+
+  <div class="cards cards-wide">
+    <div class="card" style="border-color:var(--cyan)">
+      <h3><span class="label label-cyan">Step 1-2</span> _build_source_prompt(user_message)</h3>
+      <h4>Inputs</h4><p>user_message, workspace_dir, source_files[]</p>
+      <h4>Instructions</h4>
+      <ul>
+        <li>Read ALL source files using <code>read_source_files</code></li>
+        <li>Summarize key facts, clarify via <code>ask_user_question</code></li>
+        <li>DO NOT propose improvements (StructurePlanner does that)</li>
+        <li>DO NOT edit any files</li>
+      </ul>
+      <h4>Output</h4><p>→ <code>state.source_register</code></p>
+      <h4>Step 2 (orchestrator)</h4><p>_rescue_text_questions() → _wait_pending_questions() → <strong>Gate 1</strong></p>
+    </div>
+
+    <div class="card" style="border-color:var(--purple)">
+      <h3><span class="label label-purple">Step 3-4</span> _build_structure_prompt()</h3>
+      <h4>Two Modes</h4>
+      <ul>
+        <li><span class="label label-green">RESUME</span> SDK session available → brief prompt, "you have full context from SourceAnalyst"</li>
+        <li><span class="label label-amber">FULL</span> No resume → includes full <code>source_register</code> text</li>
+      </ul>
+      <h4>Instructions</h4>
+      <ul>
+        <li>Analyze strengths, weaknesses, gaps</li>
+        <li>Use <code>present_proposal</code> for edit plan</li>
+        <li>DO NOT use write tools</li>
+      </ul>
+      <h4>Output</h4><p>→ <code>state.layer_plan</code></p>
+      <h4>Step 4 (orchestrator)</h4><p>_rescue_text_questions() → _wait_pending_questions() → <strong>Gate 2</strong></p>
+    </div>
+
+    <div class="card" style="border-color:var(--amber)">
+      <h3><span class="label label-amber">Step 5-7</span> _build_content_prompt()</h3>
+      <h4>Inputs</h4><p>source_register + layer_plan (edit plan) + workspace</p>
+      <h4>Instructions</h4>
+      <ul>
+        <li>Execute ALL replacements from the Edit Plan</li>
+        <li>Call <code>find_replace_in_file</code> for EVERY replacement</li>
+        <li>Verify changes, summarize</li>
+        <li>CRITICAL: Execute NOW, do NOT ask questions</li>
+      </ul>
+      <h4>Steps 6-7 (orchestrator)</h4><p>Save state → <strong>Gate 3</strong></p>
+    </div>
+
+    <div class="card" style="border-color:var(--green)">
+      <h3><span class="label label-green">Step 8</span> _build_qa_prompt()</h3>
+      <h4>Inputs</h4><p>source_register + workspace</p>
+      <h4>Instructions</h4>
+      <ul>
+        <li>Run <code>validate_scenario</code> for deterministic checks</li>
+        <li>Manual file verification</li>
+        <li>DISCOVERY mode: no write tools available</li>
+        <li>Report via <code>present_proposal</code></li>
+        <li>Verdict: PASS / FAIL</li>
+      </ul>
+      <h4>Output</h4><p>→ <code>state.qa_result</code></p>
+    </div>
+
+    <div class="card" style="border-color:var(--amber)">
+      <h3><span class="label label-amber">Step 8b</span> _build_qa_fix_prompt()</h3>
+      <h4>Inputs</h4><p>qa_result (previous findings) + workspace</p>
+      <h4>Instructions</h4>
+      <ul>
+        <li>Apply ALL proposed fixes via <code>find_replace_in_file</code></li>
+        <li>Run <code>assemble_prompt</code> to rebuild</li>
+        <li>Run <code>validate_scenario</code> to confirm</li>
+        <li>CRITICAL: Apply NOW, do NOT re-analyze</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="label label-blue">Step 9-10</span> _build_test_prompt() / _build_retrospective_prompt()</h3>
+      <h4>Test</h4><p>QA result excerpt (1000 chars) + "plan and run tests, ask to confirm parameters"</p>
+      <h4>Retrospective</h4><p>"Testing was skipped by user choice" + QA result + "do a mini-retrospective"</p>
+      <h4>Step 10 (orchestrator)</h4><p>Save state.test_result → status = COMPLETED → emit 🎉</p>
+      <h4>Output</h4><p>→ <code>state.test_result</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ API & SSE ═══════════════ -->
+<div class="section" id="s-api">
+  <h2>REST API &amp; SSE Protocol</h2>
+  <p class="desc">FastAPI backend on port <strong>8765</strong>. Serves the SPA from <code>static/</code>, provides REST endpoints for session management, and streams real-time updates via Server-Sent Events.</p>
+
+  <h3 style="color:var(--cyan)">API Endpoints — 18 Routes</h3>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/</code></td><td>Serve index.html</td></tr>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/api/scenarios</code></td><td>List SCENARIOS/ tree with metadata</td></tr>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/api/models</code></td><td>Available models, effort levels, languages</td></tr>
+      <tr><td colspan="3" style="border-bottom:2px solid var(--border);padding:4px"></td></tr>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/api/sessions</code></td><td>List all sessions</td></tr>
+      <tr><td><span class="method method-post">POST</span></td><td><code>/api/sessions</code></td><td>Create session (+ optional fork)</td></tr>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/api/sessions/{id}</code></td><td>Full session state JSON</td></tr>
+      <tr><td><span class="method method-del">DEL</span></td><td><code>/api/sessions/{id}</code></td><td>Delete session + workspace</td></tr>
+      <tr><td><span class="method method-put">PUT</span></td><td><code>/api/sessions/{id}/settings</code></td><td>Update model / effort / language</td></tr>
+      <tr><td><span class="method method-post">POST</span></td><td><code>/api/sessions/{id}/upload</code></td><td>Upload source file (multipart)</td></tr>
+      <tr><td colspan="3" style="border-bottom:2px solid var(--border);padding:4px"></td></tr>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/api/stream/{id}</code></td><td>SSE event stream</td></tr>
+      <tr><td><span class="method method-post">POST</span></td><td><code>/api/sessions/{id}/message</code></td><td>Start pipeline (runs in background task)</td></tr>
+      <tr><td><span class="method method-post">POST</span></td><td><code>/api/sessions/{id}/stop</code></td><td>Pause pipeline, cancel task</td></tr>
+      <tr><td colspan="3" style="border-bottom:2px solid var(--border);padding:4px"></td></tr>
+      <tr><td><span class="method method-post">POST</span></td><td><code>/api/gates/{id}/{gate_id}</code></td><td>Approve / reject gate</td></tr>
+      <tr><td><span class="method method-post">POST</span></td><td><code>/api/questions/{id}/{qid}</code></td><td>Answer question</td></tr>
+      <tr><td colspan="3" style="border-bottom:2px solid var(--border);padding:4px"></td></tr>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/api/sessions/{id}/logs/{f}</code></td><td>Read log file (stepN_Agent.md)</td></tr>
+      <tr><td><span class="method method-put">PUT</span></td><td><code>/api/sessions/{id}/logs/{f}</code></td><td>Edit log + update orchestrator state</td></tr>
+      <tr><td><span class="method method-post">POST</span></td><td><code>/api/sessions/{id}/save-question-log</code></td><td>Save question content as log file</td></tr>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/api/sessions/{id}/files</code></td><td>List workspace files</td></tr>
+      <tr><td><span class="method method-get">GET</span></td><td><code>/api/sessions/{id}/files/{path}</code></td><td>Read workspace file content</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">SSE Event Types — 8 Events</h3>
+  <table class="tbl">
+    <thead><tr><th>Event</th><th>Data Fields</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td><span class="label label-green">connected</span></td><td>session_id</td><td>Initial handshake</td></tr>
+      <tr><td><span class="label label-cyan">message</span></td><td>agent, step, text, log_file?, full_length?</td><td>Agent output (each message)</td></tr>
+      <tr><td><span class="label label-amber">gate</span></td><td>gate_id, description, status</td><td>Gate pending</td></tr>
+      <tr><td><span class="label label-amber">question</span></td><td>question_id, agent, step, question, context, options</td><td>Agent asks user</td></tr>
+      <tr><td><span class="label label-blue">step_change</span></td><td>step, agent</td><td>Pipeline moves to next step</td></tr>
+      <tr><td><span class="label label-purple">consistency</span></td><td>step, status, report</td><td>Consistency check result</td></tr>
+      <tr><td><span class="label label-green">completed</span></td><td>status, elapsed_seconds, steps, questions, gates_approved, gates_total, consistency_checks, sdk_session_id</td><td>Pipeline finished</td></tr>
+      <tr><td><span class="label label-blue">ping</span></td><td>{}</td><td>Keep-alive (30s timeout)</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Race Protection</h3>
+  <div class="cards">
+    <div class="card">
+      <h3>🏃 _running_tasks</h3>
+      <p>Dict tracking active <code>asyncio.Task</code> per session. POST <code>/message</code> checks if task exists and is not done — returns <strong>409 Conflict</strong> if pipeline already running.</p>
+    </div>
+    <div class="card">
+      <h3>📋 _guarded_run()</h3>
+      <p>Wrapper around <code>orch.run()</code>: tracks elapsed time, cleans up <code>_running_tasks</code> in <code>finally</code>, pushes <code>completed</code> SSE event with summary stats.</p>
+    </div>
+    <div class="card">
+      <h3>📝 Log → State Sync</h3>
+      <p>PUT <code>/logs/{filename}</code> updates both the disk file AND orchestrator state. Maps: <code>step1_SourceAnalyst → source_register</code>, <code>step3_StructurePlanner → layer_plan</code>, etc.</p>
+    </div>
+  </div>
+
+  <hr class="sep">
+  <h3 style="color:var(--cyan)">Available Models &amp; Configuration</h3>
+  <div class="cards">
+    <div class="card">
+      <h3>🤖 Models</h3>
+      <ul>
+        <li><strong>Auto</strong> — SDK auto-select</li>
+        <li><strong>Sonnet 4.5</strong> — best quality</li>
+        <li><strong>Haiku 4.5</strong> — fast &amp; cheap</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>⚡ Effort Levels</h3>
+      <ul>
+        <li><strong>Low</strong> — minimal thinking</li>
+        <li><strong>Medium</strong> — balanced</li>
+        <li><strong>High</strong> — thorough (default)</li>
+        <li><strong>Extra High</strong> — deep reasoning</li>
+        <li><strong>Max</strong> — maximum budget</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🌐 Languages</h3>
+      <ul>
+        <li>🇷🇺 Русский (default)</li>
+        <li>🇺🇸 English</li>
+        <li>🇩🇪 Deutsch</li>
+        <li>🇹🇷 Türkçe</li>
+        <li>🇮🇱 עברית</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FILES ═══════════════ -->
+<div class="section" id="s-files">
+  <h2>File Map</h2>
+  <div class="flow-box"><pre>
+freestyle-02-scenario-builder/
+├── <span class="hl-cyan">app.py</span>                    <span class="hl-purple">FastAPI web server (REST + SSE, 689 lines)</span>
+├── <span class="hl-cyan">cli.py</span>                    <span class="hl-purple">Terminal CLI interface</span>
+├── <span class="hl-cyan">SKILL.md</span>                  <span class="hl-purple">Original workflow specification</span>
+├── <span class="hl-cyan">ARCHITECTURE.md</span>           <span class="hl-purple">Architecture documentation (301 lines)</span>
+├── <span class="hl-cyan">requirements.txt</span>          <span class="hl-purple">Python dependencies</span>
+├── <span class="hl-cyan">pyproject.toml</span>            <span class="hl-purple">Project metadata</span>
+│
+├── <span class="hl-amber">skills/</span>                   <span class="hl-purple">Agent instruction files (.md)</span>
+│   ├── source-analyst.md
+│   ├── structure-planner.md
+│   ├── content-writer.md
+│   ├── qa-validator.md
+│   ├── test-runner.md
+│   └── consistency-checker.md
+│
+├── <span class="hl-amber">references/</span>               <span class="hl-purple">Reference docs for agents</span>
+│   ├── freestyle-02-file-responsibilities.md
+│   ├── communication-gates.md
+│   ├── immersive-prompt-writing.md
+│   ├── welcome-message.md
+│   ├── final-qa-checklist.md
+│   ├── known-issues.md
+│   └── testing-and-iteration.md
+│
+├── <span class="hl-amber">scripts/</span>                  <span class="hl-purple">Assembly &amp; validation scripts</span>
+│   ├── assemble_effective_prompt.py
+│   └── validate_freestyle02_scenario.py
+│
+├── <span class="hl-amber">src/</span>
+│   ├── <span class="hl-cyan">orchestrator.py</span>       <span class="hl-purple">Pipeline engine (1097 lines)</span>
+│   ├── <span class="hl-cyan">utils.py</span>              <span class="hl-purple">Shared utilities (146 lines)</span>
+│   ├── <span class="hl-amber">hooks/</span>
+│   │   ├── gate_enforcement.py  <span class="hl-green">Gate-based write locks + QA lock (100 lines)</span>
+│   │   ├── safety_hooks.py      <span class="hl-green">Block built-in tools (53 lines)</span>
+│   │   └── stop_guard.py        <span class="hl-green">Force question tool usage (87 lines)</span>
+│   ├── <span class="hl-amber">subagents/</span>
+│   │   └── __init__.py          <span class="hl-green">7 agent defs &amp; tool permissions (179 lines)</span>
+│   ├── <span class="hl-amber">state/</span>
+│   │   ├── models.py            <span class="hl-green">Pydantic state models (176 lines)</span>
+│   │   └── session.py           <span class="hl-green">File-based persistence (123 lines)</span>
+│   └── <span class="hl-amber">tools/</span>
+│       ├── __init__.py          <span class="hl-green">MCP server factory (50 lines)</span>
+│       ├── file_tools.py        <span class="hl-green">read/write/list/replace (179 lines)</span>
+│       ├── assembly_tools.py    <span class="hl-green">assemble_prompt (42 lines)</span>
+│       ├── validation_tools.py  <span class="hl-green">validate_scenario (41 lines)</span>
+│       ├── question_tool.py     <span class="hl-green">ask_user_question (60 lines)</span>
+│       └── proposal_tool.py     <span class="hl-green">present_proposal (81 lines)</span>
+│
+├── <span class="hl-amber">static/</span>                   <span class="hl-purple">Web UI</span>
+│   ├── index.html              <span class="hl-green">SPA entry point</span>
+│   ├── styles.css              <span class="hl-green">Dark-themed premium UI</span>
+│   ├── app.js                  <span class="hl-green">Frontend logic, SSE, gate/question UI</span>
+│   └── architecture.html       <span class="hl-green">This file</span>
+│
+├── <span class="hl-amber">SCENARIOS/</span>                <span class="hl-purple">Scenario repository (ERT-*, etc.)</span>
+└── <span class="hl-amber">sessions/</span>                 <span class="hl-purple">Persisted state (JSON + log files)</span>
+    └── {session_id}/
+        ├── state.json           <span class="hl-green">SessionState snapshot</span>
+        ├── workspace/           <span class="hl-green">Generated files</span>
+        ├── step1_SourceAnalyst.md  <span class="hl-green">Long agent output</span>
+        └── step3_StructurePlanner.md
+  </pre></div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('s-'+t.dataset.s).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

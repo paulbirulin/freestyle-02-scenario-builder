@@ -1,0 +1,4 @@
+interface:
+  display_name: "/freestyle-02-scenario-builder"
+  short_description: "Build, adapt, validate, and prepare Freestyle-02 buyer-avatar scenarios with shared_base/scenario_overlay structure."
+  default_prompt: "Use $freestyle-02-scenario-builder to build or adapt a Freestyle-02 buyer-avatar scenario from the provided materials."

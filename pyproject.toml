@@ -1,0 +1,20 @@
+[project]
+name = "freestyle-02-scenario-builder"
+version = "0.1.0"
+description = "Web-based Freestyle-02 Scenario Builder powered by Claude Agent SDK via AWS Bedrock"
+requires-python = ">=3.10"
+dependencies = [
+    "claude-agent-sdk>=0.1.0",
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.20.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+    "python-multipart>=0.0.6",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]

@@ -1,0 +1,10 @@
+# Credentials
+.env
+
+# Sessions data
+sessions/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
